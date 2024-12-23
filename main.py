@@ -4,9 +4,11 @@ from playwright.async_api import async_playwright
 from login import Login
 from newCase import NewCase
 
+from convert import nlg_transfer_medical_data
+
 async def main():
    
-    file_path = "D:\\AlgoSpring\\python\\MaxHealth\\MaxHealth_Field Mapping.xlsx" 
+    file_path = "D:\\AlgoSpring\\python\\MaxHealth\\plan_upload.xlsx" 
     df1 = pd.read_excel(file_path, sheet_name="Sheet1")  # Key-Value
     df2 = pd.read_excel(file_path, sheet_name="Sheet2") 
 
@@ -22,6 +24,8 @@ async def main():
             # Login and process form
             login = Login(page)
             await login.perform_login("irfan.p@gargashinsurance.com", "November@123")
+
+            nlg_transfer_medical_data()
             
             new_case = NewCase(page, df1, df2)
             await new_case.create_new_case()

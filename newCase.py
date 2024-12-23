@@ -3,7 +3,7 @@ import os
 import time
 from datetime import datetime
 from O365 import Account
-from mailSend import send_email_with_attachment
+# from mailSend import send_email_with_attachment
 import csv
 
 class NewCase:
@@ -134,7 +134,7 @@ class NewCase:
         await file_input_locator.wait_for(state="attached", timeout=10000) 
 
         # Set the file
-        await file_input_locator.set_input_files("D:\\AlgoSpring\\python\\MaxHealth\\Census Sheet-MaxHealth.xlsx")
+        await file_input_locator.set_input_files("D:\\AlgoSpring\\python\\MaxHealth\\MaxHealth.xlsx")
         
         await asyncio.sleep(0.5)
 
@@ -181,14 +181,14 @@ class NewCase:
 
         # Name of Client
         company_name = self.fetch_value(self.df1, "Company Name")
-        await self.page.locator('input[name="clientName"]').fill(company_name)
+        await self.page.locator("//input[@id='clientName']").fill(company_name)
         print(company_name)
 
 
         #client location 
         location = self.fetch_value(self.df1, "Emirates")
         print(location)
-        await self.page.locator('//*[@id="mui-43"]').click()      
+        await self.page.locator('//*[@id="mui-42"]').click()      
         await self.page.locator(f'li[role="option"]:has-text("{location}")').click()
         await asyncio.sleep(0.5) 
 
@@ -201,10 +201,11 @@ class NewCase:
 
         # Account Handling Person Name  
         contact_person = self.fetch_value(self.df1, "Contatct Person")
-        await self.page.locator('input[name="accountHandlingPersonName"]').fill(contact_person)
+        await self.page.locator("//input[@id='accountHandlingPersonName']").fill(contact_person)
         await asyncio.sleep(0.5) 
         # Fetch the policy start date
         policy_str_date = self.fetch_value(self.df1, "Effective from")
+        print(policy_str_date)
         # Check if the value is already a datetime object
         if isinstance(policy_str_date, datetime):
             # Format directly if it's already a datetime object
@@ -212,6 +213,7 @@ class NewCase:
         else:
             # Parse the string into a datetime object and reformat it
             policy_str_date = datetime.strptime(policy_str_date, "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y")
+            print(policy_str_date)
 
         # Use the reformatted date
         await self.page.locator("input[placeholder='dd/mm/yyyy']").click()
@@ -236,15 +238,15 @@ class NewCase:
 
         # Policy Holder Type (mui-50)
         policy_holder_type = "SME Group: 10 members (minimum of 3 employees) up to 300 members"
-        await self.page.locator('//*[@id="root"]/div/main/div/div/div[2]/div[1]/form/div/div/div[2]/div[2]/div[12]/div/div').click()
+        await self.page.locator('//*[@id="mui-49"]').click()
         await self.page.locator(f'li[role="option"]:has-text("{policy_holder_type}")').click()
         await asyncio.sleep(0.5)
 
         # Target premium
         target_premium = self.get_value("Target Premium")  
-        await self.page.locator('//*[@id="root"]/div/main/div/div/div[2]/div[1]/form/div/div/div[2]/div[2]/div[14]/div/div[1]/div').click()
+        await self.page.locator('//*[@id="mui-51"]').click()
         print(target_premium)
-        await self.page.locator('//*[@id="root"]/div/main/div/div/div[2]/div[1]/form/div/div/div[2]/div[2]/div[14]/div/div[1]/div').type(target_premium)
+        await self.page.locator('//*[@id="mui-51"]').type(target_premium)
         await asyncio.sleep(0.5) 
 
         # Quotation For
@@ -253,27 +255,31 @@ class NewCase:
         # New - New client - Need to upload TOP
         # New-Virgin - New Client(virigin Group) 
         if quotation_for == "New":
-            await self.page.locator('//*[@id="mui-51"]').click()
-            await self.page.locator('li[role="option"]:has-text("New Client")').nth(0).click()
+            await self.page.get_by_label("Quotation For").click()
+            await self.page.get_by_role("option", name="New Client", exact=True).click()
             await asyncio.sleep(0.5)
             print("ok1")
             
             # Upload TOP
             try:
-                # Option 1: Directly set files on the file input element
-                file_input_locator = self.page.locator('//*[@id="root"]/div/main/div/div/div[2]/div[1]/form/div/div/div[2]/div[2]/div[15]/div/div[1]/input')
-                await file_input_locator.set_input_files("D:\\AlgoSpring\\python\\MaxHealth\\CS-170524-B65751-V1.pdf")
-                print("File uploaded successfully.")
+                # TOB file path
+                file_path = "D:\\AlgoSpring\\python\\MaxHealth\\CS-170524-B65751-V1.pdf"
+                # Provide the XPath to the input element where files are uploaded
+                input_xpath = '//*[@id="root"]/div/main/div/div/div[2]/div[1]/form/div/div/div[2]/div[2]/div[16]/div/div/input'
+                # Set the input element's visibility to true before uploading (since it's hidden)
+                await self.page.eval_on_selector(input_xpath, "input => input.style.display = 'block'")
+                # Upload the file
+                await self.page.set_input_files(input_xpath, file_path)
 
             except Exception as e:
                 print(f"File upload failed: {e}")
 
-            await asyncio.sleep(0.5)  # Allow some time for file to be processed if necessary
+            await asyncio.sleep(0.5) 
             print("ok2")
 
         else:
-            await self.page.locator('//*[@id="mui-51"]').click()
-            await self.page.locator('li[role="option"]:has-text("New Client (Virgin Group)")').nth(0).click()
+            await self.page.get_by_label("Quotation For").click()
+            await self.page.get_by_role("option", name="New Client (Virgin Group)").click()
             await asyncio.sleep(0.5)
             print("ok1")        
 
